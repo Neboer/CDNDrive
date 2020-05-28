@@ -133,13 +133,16 @@ def upload_handle(args):
     nblocks = math.ceil(path.getsize(file_name) / (args.block_size * 1024 * 1024))
     block_dicts = [{} for _ in range(nblocks)]
     trpool = ThreadPoolExecutor(args.thread)
-    hdls = []
-    
+    workers_pool = []
+
     blocks = read_in_chunk(file_name, size=args.block_size * 1024 * 1024)
     for i, block in enumerate(blocks):
         hdl = trpool.submit(tr_upload, i, block, block_dicts[i])
-        hdls.append(hdl)
-    for h in hdls: h.result()
+        workers_pool.append(hdl)
+        if len(workers_pool) == args.thread:
+            workers_pool[0].result()
+            del workers_pool[0]
+    for h in workers_pool: h.result()
     if not succ: return
     
     sha1 = calc_sha1(read_in_chunk(file_name))
