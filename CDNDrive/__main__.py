@@ -226,6 +226,9 @@ def download_handle(args):
             offset = block_offset(meta_dict, i)
             hdl = trpool.submit(tr_download, i, block_dict, f, offset)
             hdls.append(hdl)
+            if len(hdls) == args.thread:
+                hdls[0].result()
+                del hdls[0]
         for h in hdls: h.result()
         if not succ: return
         f.truncate(meta_dict['size'])

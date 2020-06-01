@@ -40,18 +40,21 @@ class PngEncoder:
         return data[62:]
         
     
-    def encode_png(self, data):    
+    def encode_png(self, data):
+        # 在data二进制的最前面加上被python解释为unsigned int的little-endian二进制整数信息，值等于其长度
         data = struct.pack('<I', len(data)) + data
-        
+        # 宽度*高度*深度，描述一张图片
         minsz = self.minw * self.minh * self.dep
         if len(data) < minsz:
             data += b'\0' * (minsz - len(data))
-        
+        # 将data拆开，拆成深度个份，深度默认为3，side是一深度层的边长，取天花板以防容量不够。
         side = math.ceil(math.sqrt(len(data) / self.dep))
+        # total是准备好的文件容器的总容量
         total = side * side * self.dep
+        # 有可能data不能填满容器，这个时候就在数据的最后补0, 填满容器。
         if len(data) < total:
             data += b'\0' * (total - len(data))
-        
+        # 将framebuffer格式的图片（也就是像素）转换为png格式，这个转换不涉及到内存的拷贝，因为是“load”的行为。
         img = Image.frombytes(self.mode, (side, side), data)
         bio = BytesIO()
         img.save(bio, 'png')
