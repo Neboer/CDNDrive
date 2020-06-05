@@ -91,7 +91,7 @@ def main():
         data = encoder.decode(data)
         fname = fname + '.data'
     
-    with open(fname, 'wb') as f:
+    with open(sys.argv[3], 'wb') as f:
         f.write(data)
         
 if __name__ == '__main__': main()
